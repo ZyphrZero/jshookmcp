@@ -26,7 +26,10 @@ export type StealthSetUserAgentResponse = {
 };
 
 export function parseJson<T>(response: TextResponse): T {
-  const text = response.content[0]?.text ?? '';
+  const text = response.content?.[0]?.text;
+  if (!text) {
+    throw new Error('Failed to parse JSON from response: content is empty or missing text.');
+  }
   return JSON.parse(text) as T;
 }
 
