@@ -1,20 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type {
+  Platform,
+  StealthInjectResponse,
+  StealthSetUserAgentResponse,
+} from './stealth-test-utils';
+import { expectNextStepHint, parseJson } from './stealth-test-utils';
 
-type Driver = 'chrome' | 'camoufox';
-type Platform = 'windows' | 'mac' | 'linux';
-type TextResponse = { content: Array<{ text: string; type?: string }> };
-type StealthInjectResponse = {
-  success: boolean;
-  driver?: Driver;
-  message: string;
-  _nextStepHint?: string;
-};
-type StealthSetUserAgentResponse = {
-  success: boolean;
-  platform: Platform;
-  message: string;
-  _nextStepHint?: string;
-};
 type InjectAllFn = (page: unknown) => Promise<void>;
 type SetRealisticUserAgentFn = (page: unknown, platform: Platform) => Promise<void>;
 
@@ -35,16 +26,6 @@ import { StealthInjectionHandlers } from '@server/domains/browser/handlers/steal
 
 type StealthDeps = ConstructorParameters<typeof StealthInjectionHandlers>[0];
 type PageControllerStub = Pick<StealthDeps['pageController'], 'getPage'>;
-
-function parseJson<T>(response: TextResponse): T {
-  const text = response.content[0]?.text ?? '';
-  return JSON.parse(text) as T;
-}
-
-function expectNextStepHint(body: { _nextStepHint?: string }, expectedText: string) {
-  expect(body._nextStepHint).toEqual(expect.any(String));
-  expect(body._nextStepHint).toContain(expectedText);
-}
 
 describe('StealthInjectionHandlers — additional coverage', () => {
   const page = { id: 'page-1' } as unknown as Awaited<ReturnType<PageControllerStub['getPage']>>;
