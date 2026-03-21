@@ -164,7 +164,7 @@ describe('StealthInjectionHandlers — additional coverage', () => {
       expect(content).toHaveProperty('type', 'text');
       expect(content).toHaveProperty('text');
 
-      const parsed = JSON.parse(content!.text) as StealthSetUserAgentResponse;
+      const parsed = parseJson<StealthSetUserAgentResponse>(response);
       expect(parsed).toMatchObject({
         success: true,
         platform: 'windows',
