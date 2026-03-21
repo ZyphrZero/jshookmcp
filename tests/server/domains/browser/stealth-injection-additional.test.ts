@@ -7,11 +7,13 @@ type StealthInjectResponse = {
   success: boolean;
   driver?: Driver;
   message: string;
+  _nextStepHint?: string;
 };
 type StealthSetUserAgentResponse = {
   success: boolean;
   platform: Platform;
   message: string;
+  _nextStepHint?: string;
 };
 type InjectAllFn = (page: unknown) => Promise<void>;
 type SetRealisticUserAgentFn = (page: unknown, platform: Platform) => Promise<void>;
@@ -37,6 +39,11 @@ type PageControllerStub = Pick<StealthDeps['pageController'], 'getPage'>;
 function parseJson<T>(response: TextResponse): T {
   const text = response.content[0]?.text ?? '';
   return JSON.parse(text) as T;
+}
+
+function expectNextStepHint(body: { _nextStepHint?: string }, expectedText: string) {
+  expect(body._nextStepHint).toEqual(expect.any(String));
+  expect(body._nextStepHint).toContain(expectedText);
 }
 
 describe('StealthInjectionHandlers — additional coverage', () => {
@@ -88,6 +95,7 @@ describe('StealthInjectionHandlers — additional coverage', () => {
       expect(injectAllMock).toHaveBeenCalledWith(page);
       expect(body.success).toBe(true);
       expect(body.message).toContain('Stealth scripts injected');
+      expectNextStepHint(body, 'page_navigate');
     });
 
     it('propagates error when injectAll throws', async () => {
@@ -176,11 +184,12 @@ describe('StealthInjectionHandlers — additional coverage', () => {
       expect(content).toHaveProperty('text');
 
       const parsed = JSON.parse(content!.text) as StealthSetUserAgentResponse;
-      expect(parsed).toEqual({
+      expect(parsed).toMatchObject({
         success: true,
         platform: 'windows',
         message: 'User-Agent set for windows',
       });
+      expectNextStepHint(parsed, 'stealth_inject');
     });
   });
 });

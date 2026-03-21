@@ -18,6 +18,11 @@ function parseJson(response: any) {
   return JSON.parse(response.content[0].text);
 }
 
+function expectNextStepHint(body: { _nextStepHint?: string }, expectedText: string) {
+  expect(body._nextStepHint).toEqual(expect.any(String));
+  expect(body._nextStepHint).toContain(expectedText);
+}
+
 describe('StealthInjectionHandlers', () => {
   const page = { id: 'page-1' } as any;
   const pageController = {
@@ -53,11 +58,12 @@ describe('StealthInjectionHandlers', () => {
 
     expect(pageController.getPage).toHaveBeenCalledOnce();
     expect(injectAllMock).toHaveBeenCalledWith(page);
-    expect(body).toEqual({
+    expect(body).toMatchObject({
       success: true,
       message: 'Stealth scripts injected successfully',
       fingerprintApplied: false,
     });
+    expectNextStepHint(body, 'page_navigate');
   });
 
   it('sets a realistic user agent and defaults platform to windows', async () => {
@@ -67,11 +73,12 @@ describe('StealthInjectionHandlers', () => {
 
     expect(pageController.getPage).toHaveBeenCalledOnce();
     expect(setRealisticUserAgentMock).toHaveBeenCalledWith(page, 'windows');
-    expect(body).toEqual({
+    expect(body).toMatchObject({
       success: true,
       platform: 'windows',
       message: 'User-Agent set for windows',
     });
+    expectNextStepHint(body, 'stealth_inject');
   });
 
   it('passes through the requested platform', async () => {
